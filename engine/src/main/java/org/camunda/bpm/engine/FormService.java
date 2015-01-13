@@ -156,6 +156,16 @@ public interface FormService {
   VariableMap getTaskFormVariables(String taskId, Collection<String> formVariables, boolean deserializeObjectValues);
 
   /**
+     * <p>Retrieves a list of requested form fields variables for rendering a task form.</p>
+     *
+     * @param taskId the id of the task for which the variables should be retrieved.
+     * @param formFieldVariables a Collection of the names of the variables to retrieve. Allows restricting the set of retrieved variables.
+     * @param deserializeObjectValues if false object values are not deserialized
+     * @return a map of VariableInstances.
+     */
+    VariableMap getTaskFormFieldVariables(String taskId, Collection<String> formFieldVariables, boolean deserializeObjectValues);
+
+    /**
    * Retrieves a user defined reference to a start form.
    *
    * In the Explorer app, it is assumed that the form key specifies a resource

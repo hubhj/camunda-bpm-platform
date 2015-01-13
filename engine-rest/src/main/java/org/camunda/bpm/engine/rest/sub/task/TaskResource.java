@@ -116,6 +116,12 @@ public interface TaskResource {
   Map<String, VariableValueDto> getFormVariables(@QueryParam("variableNames") String variableNames,
       @QueryParam(VariableResource.DESERIALIZE_VALUES_QUERY_PARAM) @DefaultValue("true") boolean deserializeValues);
 
+  @GET
+  @Path("/formfield-variables")
+  @Produces(MediaType.APPLICATION_JSON)
+  Map<String, VariableValueDto> getFormFieldVariables(@QueryParam("variableNames") String variableNames,
+                                                      @QueryParam(VariableResource.DESERIALIZE_VALUES_QUERY_PARAM) @DefaultValue("true") boolean deserializeValues);
+
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   public void updateTask(TaskDto task);

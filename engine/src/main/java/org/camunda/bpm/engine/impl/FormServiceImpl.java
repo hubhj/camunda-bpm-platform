@@ -110,4 +110,8 @@ public class FormServiceImpl extends ServiceImpl implements FormService {
     return commandExecutor.execute(new GetTaskFormVariablesCmd(taskId, formVariables, deserializeObjectValues));
   }
 
+  public VariableMap getTaskFormFieldVariables(String taskId, Collection<String> formFieldVariables, boolean deserializeObjectValues) {
+    return commandExecutor.execute(new GetTaskFormFieldVariablesCmd(taskId, formFieldVariables, deserializeObjectValues));
+  }
+
 }
