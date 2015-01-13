@@ -14,13 +14,13 @@ package org.camunda.bpm.engine.impl.form.validator;
 
 /**
  * @author Daniel Meyer
- *
+ * @author Hagen Jung
  */
 public class ReadOnlyValidator implements FormFieldValidator {
 
   public boolean validate(Object submittedValue, FormFieldValidatorContext validatorContext) {
-    // no value was submitted
-    return submittedValue == null;
+    // should always be true, since there is no way to change the value
+    return true;
   }
 
 }
