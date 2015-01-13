@@ -14,9 +14,12 @@
 package org.camunda.bpm.engine.impl.form.handler;
 
 import org.camunda.bpm.engine.delegate.VariableScope;
+import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.camunda.bpm.engine.impl.persistence.entity.DeploymentEntity;
+import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.camunda.bpm.engine.impl.persistence.entity.TaskEntity;
 import org.camunda.bpm.engine.impl.util.xml.Element;
 import org.camunda.bpm.engine.variable.VariableMap;
 
@@ -26,7 +29,7 @@ import org.camunda.bpm.engine.variable.VariableMap;
  */
 public interface FormHandler {
 
-  void parseConfiguration(Element activityElement, DeploymentEntity deployment, ProcessDefinitionEntity processDefinition, BpmnParse bpmnParse);
+  void parseConfiguration(Element activityElement, DeploymentEntity deployment, BpmnParse bpmnParse);
 
   void submitFormVariables(VariableMap properties, VariableScope variableScope);
 }

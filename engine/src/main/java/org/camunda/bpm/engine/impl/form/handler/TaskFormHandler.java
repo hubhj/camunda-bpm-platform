@@ -14,7 +14,9 @@
 package org.camunda.bpm.engine.impl.form.handler;
 
 import org.camunda.bpm.engine.form.TaskFormData;
+import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.TaskEntity;
+import org.camunda.bpm.engine.impl.task.TaskDefinition;
 
 
 /**
@@ -22,5 +24,8 @@ import org.camunda.bpm.engine.impl.persistence.entity.TaskEntity;
  */
 public interface TaskFormHandler extends FormHandler {
 
-  TaskFormData createTaskForm(TaskEntity task);
+  TaskFormData createTaskForm(TaskEntity task, ExecutionEntity executionEntity);
+
+  TaskFormData createFormOnExecutionByTaskDefinition(TaskDefinition taskDefinition, ExecutionEntity executionEntity);
+
 }

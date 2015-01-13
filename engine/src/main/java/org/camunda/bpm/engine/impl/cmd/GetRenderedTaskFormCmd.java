@@ -61,7 +61,7 @@ public class GetRenderedTaskFormCmd  implements Command<Object>, Serializable {
 
     ensureNotNull("No formEngine '" + formEngineName + "' defined process engine configuration", "formEngine", formEngine);
 
-    TaskFormData taskForm = taskFormHandler.createTaskForm(task);
+    TaskFormData taskForm = taskFormHandler.createTaskForm(task, task.getExecution());
 
     return formEngine.renderTaskForm(taskForm);
   }

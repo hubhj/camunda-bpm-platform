@@ -18,6 +18,7 @@ import java.util.Map;
 
 import org.camunda.bpm.engine.form.StartFormData;
 import org.camunda.bpm.engine.form.TaskFormData;
+import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.camunda.bpm.engine.task.Task;
@@ -155,7 +156,7 @@ public interface FormService {
    */
   VariableMap getTaskFormVariables(String taskId, Collection<String> formVariables, boolean deserializeObjectValues);
 
-  /**
+   /**
      * <p>Retrieves a list of requested form fields variables for rendering a task form.</p>
      *
      * @param taskId the id of the task for which the variables should be retrieved.
@@ -186,4 +187,5 @@ public interface FormService {
    */
   String getTaskFormKey(String processDefinitionId, String taskDefinitionKey);
 
+ TaskFormData getTaskFormDataByProcessAndTask(String processDefinitionId, String taskDefinitionId, ExecutionEntity executionEntity);
 }

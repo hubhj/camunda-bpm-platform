@@ -180,10 +180,10 @@ public class BpmnParse extends Parse {
 
   /** A list of all element IDs. This allows us to parse only what we actually support but
    * still validate the references among elements we do not support. */
-  protected List<String> elementIds = new ArrayList<String>();
+  protected List<String> elementIds = new ArrayList<>();
 
   /** A map for storing the process references of participants */
-  protected Map<String, String> participantProcesses = new HashMap<String, String>();
+  protected Map<String, String> participantProcesses = new HashMap<>();
 
   /**
    * Mapping containing values stored during the first phase of parsing since
@@ -193,20 +193,20 @@ public class BpmnParse extends Parse {
    * means that this map doesn't need to be re-initialized for each new process
    * definition.
    */
-  protected Map<String, MessageDefinition> messages = new HashMap<String, MessageDefinition>();
-  protected Map<String, SignalDefinition> signals = new HashMap<String, SignalDefinition>();
+  protected Map<String, MessageDefinition> messages = new HashMap<>();
+  protected Map<String, SignalDefinition> signals = new HashMap<>();
 
 
 
   // Members
   protected ExpressionManager expressionManager;
   protected List<BpmnParseListener> parseListeners;
-  protected Map<String, XMLImporter> importers = new HashMap<String, XMLImporter>();
-  protected Map<String, String> prefixs = new HashMap<String, String>();
+  protected Map<String, XMLImporter> importers = new HashMap<>();
+  protected Map<String, String> prefixs = new HashMap<>();
   protected String targetNamespace;
 
-  private Map<String, String> eventLinkTargets = new HashMap<String, String>();
-  private Map<String, String> eventLinkSources = new HashMap<String, String>();
+  private Map<String, String> eventLinkTargets = new HashMap<>();
+  private Map<String, String> eventLinkSources = new HashMap<>();
 
   /**
    * Constructor to be called by the {@link BpmnParser}.
@@ -2001,7 +2001,7 @@ public class BpmnParse extends Parse {
     } else {
       taskFormHandler = new DefaultTaskFormHandler();
     }
-    taskFormHandler.parseConfiguration(taskElement, deployment, processDefinition, this);
+    taskFormHandler.parseConfiguration(taskElement, deployment, this);
 
     TaskDefinition taskDefinition = new TaskDefinition(taskFormHandler);
 

@@ -274,7 +274,7 @@ public final class EnsureUtil {
     }
   }
 
-  protected static <T extends ProcessEngineException> T generateException(Class<T> exceptionClass, String message, String variableName, String description) {
+  public static <T extends ProcessEngineException> T generateException(Class<T> exceptionClass, String message, String variableName, String description) {
     String formattedMessage = formatMessage(message, variableName, description);
 
     try {

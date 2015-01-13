@@ -20,15 +20,16 @@ import java.util.Map;
 
 import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.bpm.engine.delegate.VariableScope;
+import org.camunda.bpm.engine.form.FormData;
 import org.camunda.bpm.engine.form.FormField;
 import org.camunda.bpm.engine.form.FormProperty;
+import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParser;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.core.variable.VariableMapImpl;
 import org.camunda.bpm.engine.impl.el.ExpressionManager;
-import org.camunda.bpm.engine.impl.form.FormDataImpl;
 import org.camunda.bpm.engine.impl.form.type.AbstractFormFieldType;
 import org.camunda.bpm.engine.impl.form.type.FormTypes;
 import org.camunda.bpm.engine.impl.form.validator.FormFieldValidator;
@@ -39,9 +40,10 @@ import org.camunda.bpm.engine.impl.history.handler.HistoryEventHandler;
 import org.camunda.bpm.engine.impl.history.producer.HistoryEventProducer;
 import org.camunda.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
-import org.camunda.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.TaskEntity;
+import org.camunda.bpm.engine.impl.task.TaskDefinition;
 import org.camunda.bpm.engine.impl.util.xml.Element;
+import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.value.SerializableValue;
 import org.camunda.bpm.engine.variable.value.TypedValue;
@@ -50,90 +52,89 @@ import org.camunda.bpm.engine.variable.value.TypedValue;
 /**
  * @author Tom Baeyens
  * @author Daniel Meyer
+ * @author Hagen Jung
  */
-public class DefaultFormHandler implements FormHandler {
+abstract public class DefaultFormHandler implements FormHandler {
 
-  protected String deploymentId;
+    protected String deploymentId;
 
-  protected List<FormPropertyHandler> formPropertyHandlers = new ArrayList<FormPropertyHandler>();
+    protected List<FormPropertyHandler> formPropertyHandlers = new ArrayList<>();
 
-  protected List<FormFieldHandler> formFieldHandlers = new ArrayList<FormFieldHandler>();
+    protected List<FormFieldHandler> formFieldHandlers = new ArrayList<>();
 
-  public void parseConfiguration(Element activityElement, DeploymentEntity deployment, ProcessDefinitionEntity processDefinition, BpmnParse bpmnParse) {
-    this.deploymentId = deployment.getId();
+    public void parseConfiguration(Element activityElement, DeploymentEntity deploymentEntity, BpmnParse bpmnParse) {
+        deploymentId = deploymentEntity.getId();
 
-    ExpressionManager expressionManager = Context
-        .getProcessEngineConfiguration()
-        .getExpressionManager();
+        ExpressionManager expressionManager = Context
+            .getProcessEngineConfiguration()
+            .getExpressionManager();
 
-    Element extensionElement = activityElement.element("extensionElements");
-    if (extensionElement != null) {
+        Element extensionElement = activityElement.element("extensionElements");
+        if (extensionElement != null) {
 
-      // provide support for deprecated form properties
-      parseFormProperties(bpmnParse, expressionManager, extensionElement);
+            // provide support for deprecated form properties
+            parseFormProperties(bpmnParse, expressionManager, extensionElement);
 
-      // provide support for new form field metadata
-      parseFormData(bpmnParse, expressionManager, extensionElement);
-    }
+            // provide support for new form field metadata
+            parseFormData(bpmnParse, expressionManager, extensionElement, deploymentEntity);
+        }
   }
 
-  protected void parseFormData(BpmnParse bpmnParse, ExpressionManager expressionManager, Element extensionElement) {
+  public void parseFormData(BpmnParse bpmnParse, ExpressionManager expressionManager, Element extensionElement, DeploymentEntity deploymentEntity) {
     Element formData = extensionElement.elementNS(BpmnParser.ACTIVITI_BPMN_EXTENSIONS_NS, "formData");
     if(formData != null) {
-      parseFormFields(formData, bpmnParse, expressionManager);
+      parseFormFields(formData, bpmnParse, expressionManager, deploymentEntity);
     }
   }
 
-  protected void parseFormFields(Element formData, BpmnParse bpmnParse, ExpressionManager expressionManager) {
-    // parse fields:
+  protected void parseFormFields(Element formData, BpmnParse bpmnParse, ExpressionManager expressionManager, DeploymentEntity deploymentEntity) {
     List<Element> formFields = formData.elementsNS(BpmnParser.ACTIVITI_BPMN_EXTENSIONS_NS, "formField");
     for (Element formField : formFields) {
-      parseFormField(formField, bpmnParse, expressionManager);
+      parseFormField(formField, bpmnParse, expressionManager,deploymentEntity);
     }
   }
 
-  protected void parseFormField(Element formField, BpmnParse bpmnParse, ExpressionManager expressionManager) {
+    protected void parseFormField(Element formField, BpmnParse bpmnParse, ExpressionManager expressionManager, DeploymentEntity deploymentEntity) {
 
-    FormFieldHandler formFieldHandler = new FormFieldHandler();
+        // parse Id
+        String id = formField.attribute("id");
+        if(id == null || id.isEmpty()) {
+            bpmnParse.addError("attribute id must be set for FormFieldGroup and must have a non-empty value", formField);
+        }
 
-    // parse Id
-    String id = formField.attribute("id");
-    if(id == null || id.isEmpty()) {
-      bpmnParse.addError("attribute id must be set for FormFieldGroup and must have a non-empty value", formField);
-    } else {
-      formFieldHandler.setId(id);
-    }
+        // normal behaviour
+        FormFieldHandler formFieldHandler = new FormFieldHandler();
+        formFieldHandler.setId(id);
 
-    // parse name
-    String name = formField.attribute("label");
-    if (name != null) {
-      Expression nameExpression = expressionManager.createExpression(name);
-      formFieldHandler.setLabel(nameExpression);
-    }
+        // parse name
+        String name = formField.attribute("label");
+        if (name != null) {
+          Expression nameExpression = expressionManager.createExpression(name);
+          formFieldHandler.setLabel(nameExpression);
+        }
 
-    // parse properties
-    parseProperties(formField, formFieldHandler, bpmnParse, expressionManager);
+        // parse properties
+        parseProperties(formField, formFieldHandler);
 
-    // parse validation
-    parseValidation(formField, formFieldHandler, bpmnParse, expressionManager);
+        // parse validation
+        parseValidation(formField, formFieldHandler, bpmnParse, expressionManager);
 
-    // parse type
-    FormTypes formTypes = getFormTypes();
-    AbstractFormFieldType formType = formTypes.parseFormPropertyType(formField, bpmnParse);
-    formFieldHandler.setType(formType);
+        // parse type
+        FormTypes formTypes = getFormTypes();
+        AbstractFormFieldType formType = formTypes.parseFormPropertyType(formField, bpmnParse);
+        formFieldHandler.setType(formType);
 
-    // parse default value
-    String defaultValue = formField.attribute("defaultValue");
-    if(defaultValue != null) {
-      Expression defaultValueExpression = expressionManager.createExpression(defaultValue);
-      formFieldHandler.setDefaultValueExpression(defaultValueExpression);
-    }
+        // parse default value
+        String defaultValue = formField.attribute("defaultValue");
+        if(defaultValue != null) {
+          Expression defaultValueExpression = expressionManager.createExpression(defaultValue);
+          formFieldHandler.setDefaultValueExpression(defaultValueExpression);
+        }
 
-    formFieldHandlers.add(formFieldHandler);
-
+        formFieldHandlers.add(formFieldHandler);
   }
 
-  protected void parseProperties(Element formField, FormFieldHandler formFieldHandler, BpmnParse bpmnParse, ExpressionManager expressionManager) {
+    protected void parseProperties(Element formField, FormFieldHandler formFieldHandler) {
 
     Element propertiesElement = formField.elementNS(BpmnParser.ACTIVITI_BPMN_EXTENSIONS_NS, "properties");
 
@@ -141,7 +142,7 @@ public class DefaultFormHandler implements FormHandler {
       List<Element> propertyElements = propertiesElement.elementsNS(BpmnParser.ACTIVITI_BPMN_EXTENSIONS_NS, "property");
 
       // use linked hash map to preserve item ordering as provided in XML
-      Map<String, String> propertyMap = new LinkedHashMap<String, String>();
+      Map<String, String> propertyMap = new LinkedHashMap<>();
       for (Element property : propertyElements) {
         String id = property.attribute("id");
         String value = property.attribute("value");
@@ -181,10 +182,9 @@ public class DefaultFormHandler implements FormHandler {
 
 
   protected FormTypes getFormTypes() {
-    FormTypes formTypes = Context
-        .getProcessEngineConfiguration()
-        .getFormTypes();
-    return formTypes;
+      return Context
+          .getProcessEngineConfiguration()
+          .getFormTypes();
   }
 
   protected void parseFormProperties(BpmnParse bpmnParse, ExpressionManager expressionManager, Element extensionElement) {
@@ -249,8 +249,8 @@ public class DefaultFormHandler implements FormHandler {
     }
   }
 
-  protected void initializeFormProperties(FormDataImpl formData, ExecutionEntity execution) {
-    List<FormProperty> formProperties = new ArrayList<FormProperty>();
+  protected void initializeFormProperties(FormData formData, ExecutionEntity execution) {
+    List<FormProperty> formProperties = new ArrayList<>();
     for (FormPropertyHandler formPropertyHandler: formPropertyHandlers) {
       if (formPropertyHandler.isReadable()) {
         FormProperty formProperty = formPropertyHandler.createFormProperty(execution);
@@ -260,11 +260,41 @@ public class DefaultFormHandler implements FormHandler {
     formData.setFormProperties(formProperties);
   }
 
-  protected void initializeFormFields(FormDataImpl taskFormData, ExecutionEntity execution) {
+  protected void initializeFormFields(FormData formData, ExecutionEntity executionEntity) {
     // add form fields
-    final List<FormField> formFields = taskFormData.getFormFields();
+    final List<FormField> formFields = formData.getFormFields();
+
     for (FormFieldHandler formFieldHandler : formFieldHandlers) {
-      formFields.add(formFieldHandler.createFormField(execution));
+        FormField normalFormField = formFieldHandler.createFormField(executionEntity);
+        if("ref".equals(formFieldHandler.getLabel().toString())){
+            String referenceId = formFieldHandler.getId();
+            if(referenceId!=null){
+                Object activitiIdObject = executionEntity.getVariable("formref_"+referenceId+"_act_id");
+                Object processDefinitionObject = executionEntity.getVariable("formref_"+referenceId+"_proc_id");
+                if(activitiIdObject!=null && processDefinitionObject!=null){
+                    // get referenced data
+                    TaskFormData referencedTaskFormData = executionEntity
+                            .getProcessEngineServices()
+                            .getFormService()
+                            .getTaskFormDataByProcessAndTask(processDefinitionObject.toString(),activitiIdObject.toString(), executionEntity);
+
+                    if(referencedTaskFormData!=null){
+                        List<FormField> referencedFormFields = referencedTaskFormData.getFormFields();
+                        if(null!= referencedFormFields && !referencedFormFields.isEmpty()){
+                            for(FormField referencedFormField:referencedFormFields){
+                                referencedFormField
+                                        .getValidationConstraints()
+                                        .addAll(normalFormField
+                                                .getValidationConstraints());
+                                formFields.add(referencedFormField);
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
+            formFields.add(normalFormField);
+        }
     }
   }
 

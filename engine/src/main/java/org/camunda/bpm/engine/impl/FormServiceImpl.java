@@ -19,15 +19,8 @@ import java.util.Map;
 import org.camunda.bpm.engine.FormService;
 import org.camunda.bpm.engine.form.StartFormData;
 import org.camunda.bpm.engine.form.TaskFormData;
-import org.camunda.bpm.engine.impl.cmd.GetFormKeyCmd;
-import org.camunda.bpm.engine.impl.cmd.GetRenderedStartFormCmd;
-import org.camunda.bpm.engine.impl.cmd.GetRenderedTaskFormCmd;
-import org.camunda.bpm.engine.impl.cmd.GetStartFormCmd;
-import org.camunda.bpm.engine.impl.cmd.GetStartFormVariablesCmd;
-import org.camunda.bpm.engine.impl.cmd.GetTaskFormCmd;
-import org.camunda.bpm.engine.impl.cmd.GetTaskFormVariablesCmd;
-import org.camunda.bpm.engine.impl.cmd.SubmitStartFormCmd;
-import org.camunda.bpm.engine.impl.cmd.SubmitTaskFormCmd;
+import org.camunda.bpm.engine.impl.cmd.*;
+import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.variable.VariableMap;
 
@@ -35,6 +28,7 @@ import org.camunda.bpm.engine.variable.VariableMap;
 /**
  * @author Tom Baeyens
  * @author Falko Menge (camunda)
+ * @author Hagen Jung
  */
 public class FormServiceImpl extends ServiceImpl implements FormService {
 
@@ -62,10 +56,12 @@ public class FormServiceImpl extends ServiceImpl implements FormService {
     return commandExecutor.execute(new GetTaskFormCmd(taskId));
   }
 
+    //unchecked
   public ProcessInstance submitStartFormData(String processDefinitionId, Map<String, String> properties) {
     return commandExecutor.execute(new SubmitStartFormCmd(processDefinitionId, null, (Map) properties));
   }
 
+    //unchecked
   public ProcessInstance submitStartFormData(String processDefinitionId, String businessKey, Map<String, String> properties) {
 	  return commandExecutor.execute(new SubmitStartFormCmd(processDefinitionId, businessKey, (Map) properties));
   }
@@ -78,6 +74,7 @@ public class FormServiceImpl extends ServiceImpl implements FormService {
     return commandExecutor.execute(new SubmitStartFormCmd(processDefinitionId, businessKey, properties));
   }
 
+  //unchecked
   public void submitTaskFormData(String taskId, Map<String, String> properties) {
     commandExecutor.execute(new SubmitTaskFormCmd(taskId, (Map)properties));
   }
@@ -93,6 +90,11 @@ public class FormServiceImpl extends ServiceImpl implements FormService {
   public String getTaskFormKey(String processDefinitionId, String taskDefinitionKey) {
     return commandExecutor.execute(new GetFormKeyCmd(processDefinitionId, taskDefinitionKey));
   }
+
+    @Override
+    public TaskFormData getTaskFormDataByProcessAndTask(String processDefinitionId, String taskDefinitionId, ExecutionEntity executionEntity) {
+        return commandExecutor.execute(new GetTaskFormByProcessDefintionIdCmd(processDefinitionId, taskDefinitionId, executionEntity));
+    }
 
   public VariableMap getStartFormVariables(String processDefinitionId) {
     return getStartFormVariables(processDefinitionId, null, true);

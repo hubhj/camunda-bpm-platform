@@ -43,4 +43,12 @@ public interface FormData {
   /** returns the form fields which make up this form. */
   List<FormField> getFormFields();
 
+  /** Sets the User-defined reference to a form */
+  void setFormKey(String formKey);
+
+  /** Sets the deployment id of the process definition to this form*/
+  void setDeploymentId(String deploymentId);
+
+    @Deprecated
+    void setFormProperties(List<FormProperty> formProperties);
 }

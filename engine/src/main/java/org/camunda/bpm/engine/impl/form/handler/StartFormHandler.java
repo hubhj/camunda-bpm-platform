@@ -14,13 +14,18 @@
 package org.camunda.bpm.engine.impl.form.handler;
 
 import org.camunda.bpm.engine.form.StartFormData;
+import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParse;
+import org.camunda.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.camunda.bpm.engine.impl.util.xml.Element;
 
 
 /**
  * @author Tom Baeyens
  */
 public interface StartFormHandler extends FormHandler {
+
+  void parseConfiguration(Element activityElement, DeploymentEntity deployment, ProcessDefinitionEntity processDefinition, BpmnParse bpmnParse);
 
   StartFormData createStartFormData(ProcessDefinitionEntity processDefinition);
 }

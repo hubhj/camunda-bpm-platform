@@ -47,7 +47,7 @@ public class GetTaskFormCmd implements Command<TaskFormData>, Serializable {
       TaskFormHandler taskFormHandler = task.getTaskDefinition().getTaskFormHandler();
       ensureNotNull("No taskFormHandler specified for task '" + taskId + "'", "taskFormHandler", taskFormHandler);
 
-      return taskFormHandler.createTaskForm(task);
+      return taskFormHandler.createTaskForm(task,task.getExecution());
     } else {
       // Standalone task, no TaskFormData available
       return null;

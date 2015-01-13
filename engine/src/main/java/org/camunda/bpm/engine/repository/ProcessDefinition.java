@@ -14,7 +14,10 @@ package org.camunda.bpm.engine.repository;
 
 import org.camunda.bpm.engine.FormService;
 import org.camunda.bpm.engine.RepositoryService;
+import org.camunda.bpm.engine.impl.task.TaskDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+
+import java.util.Map;
 
 /** An object structure representing an executable process composed of 
  * activities and transitions.
@@ -66,4 +69,6 @@ public interface ProcessDefinition {
   
   /** Returns true if the process definition is in suspended state. */
   boolean isSuspended();
+
+  Map<String, TaskDefinition> getTaskDefinitions();
 }

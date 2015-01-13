@@ -14,34 +14,56 @@
 package org.camunda.bpm.engine.impl.form.handler;
 
 import org.camunda.bpm.engine.delegate.Expression;
+import org.camunda.bpm.engine.form.FormProperty;
 import org.camunda.bpm.engine.form.TaskFormData;
+import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.impl.el.ExpressionManager;
 import org.camunda.bpm.engine.impl.form.TaskFormDataImpl;
+import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.TaskEntity;
-
-
+import org.camunda.bpm.engine.impl.task.TaskDefinition;
+import org.camunda.bpm.engine.impl.util.xml.Element;
 
 /**
  * @author Tom Baeyens
+ *
  */
 public class DefaultTaskFormHandler extends DefaultFormHandler implements TaskFormHandler {
 
-  public TaskFormData createTaskForm(TaskEntity task) {
-    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    /**
+     * creates the task form data at runtime
+     * */
 
-    Expression formKey = task.getTaskDefinition().getFormKey();
+    @Override
+    public TaskFormData createTaskForm(TaskEntity task, ExecutionEntity executionEntity) {
+        TaskFormData taskFormData = new TaskFormDataImpl();
 
-    if (formKey != null) {
-      Object formValue = formKey.getValue(task);
-      if (formValue != null) {
-        taskFormData.setFormKey(formValue.toString());
-      }
+        if(task!=null){
+            Expression formKey = task.getTaskDefinition().getFormKey();
+
+            if (formKey != null) {
+                Object formValue = formKey.getValue(task);
+                if (formValue != null) {
+                    taskFormData.setFormKey(formValue.toString());
+                }
+            }
+            taskFormData.setDeploymentId(deploymentId);
+            taskFormData.setTask(task);
+            initializeFormProperties(taskFormData, executionEntity);
+        }
+        initializeFormFields(taskFormData, executionEntity);
+        return taskFormData;
     }
 
-    taskFormData.setDeploymentId(deploymentId);
-    taskFormData.setTask(task);
-    initializeFormProperties(taskFormData, task.getExecution());
-    initializeFormFields(taskFormData, task.getExecution());
-    return taskFormData;
-  }
+    @Override
+    public TaskFormData createFormOnExecutionByTaskDefinition(TaskDefinition taskDefinition, ExecutionEntity executionEntity) {
+        TaskFormData taskFormData = new TaskFormDataImpl();
 
+        if(taskDefinition!=null){
+            taskFormData.setDeploymentId(deploymentId);
+            taskFormData.setTask(null);
+        }
+        initializeFormFields(taskFormData, executionEntity);
+        return taskFormData;
+    }
 }

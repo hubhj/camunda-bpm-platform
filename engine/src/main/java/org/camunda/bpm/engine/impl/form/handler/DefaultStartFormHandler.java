@@ -36,7 +36,7 @@ public class DefaultStartFormHandler extends DefaultFormHandler implements Start
 
   @Override
   public void parseConfiguration(Element activityElement, DeploymentEntity deployment, ProcessDefinitionEntity processDefinition, BpmnParse bpmnParse) {
-    super.parseConfiguration(activityElement, deployment, processDefinition, bpmnParse);
+    super.parseConfiguration(activityElement, deployment, bpmnParse);
 
     ExpressionManager expressionManager = Context
         .getProcessEngineConfiguration()
